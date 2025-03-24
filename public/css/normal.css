@@ -1,0 +1,57 @@
+.gradient-text {
+    background: radial-gradient(circle, #dddddd, #999999);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.bg-custom-gradient {
+    background: radial-gradient(circle, rgba(50,0,70,1) 0%, rgba(10,10,10,1) 80%);
+    position: relative;
+    min-height: 100vh;   
+    .gradient-text {
+        background: radial-gradient(circle, #dddddd, #999999);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .bg-custom-gradient {
+        background: radial-gradient(circle, rgba(50,0,70,1) 0%, rgba(10,10,10,1) 80%);
+        position: relative;
+        min-height: 100vh;
+    }
+
+    .grid-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 50%;
+        height: 50%;
+        transform: translate(-50%, -50%);
+        background-size: 40px 40px;
+        background-image: linear-gradient(to right, rgba(255,255,255,0.6) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(255,255,255,0.6) 1px, transparent 1px);
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+        mask-image: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+    }
+
+    body {
+        overflow-x: hidden;
+        overflow-y: hidden;
+    }
+}
+.grid-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 50%;
+    transform: translate(-50%, -50%);
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(255,255,255,0.6) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255,255,255,0.6) 1px, transparent 1px);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
+}

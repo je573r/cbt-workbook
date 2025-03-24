@@ -1,7 +1,28 @@
-<div class="flex flex-col items-center justify-center h-screen">
-    <h1 class="text-4xl font-bold text-gray-800">Welcome to the Workbook App</h1>
-    <div class="mt-4">
-        <a href="/auth/signup" class="px-4 py-2 bg-primary text-red-500 rounded">Sign Up</a>
-        <a href="/auth/login" class="ml-2 px-4 py-2 border border-blue-700 rounded">Login</a>
-    </div>
+<div class="bg-custom-gradient text-white">
+    <nav class="flex justify-between items-center p-6 bg-transparent relative">
+        <h1 class="text-xl font-bold">CBT Workbook</h1>
+        <div class="hidden md:flex items-center space-x-6">
+            <ul class="flex space-x-6">
+                <li><a href="#" class="text-gray-300 hover:text-white">Home</a></li>
+                <li><a href="#" class="text-gray-300 hover:text-white">About Us</a></li>
+                <li><a href="#" class="text-gray-300 hover:text-white">Products</a></li>
+                <li><a href="#" class="text-gray-300 hover:text-white">Features</a></li>
+            </ul>
+            <button class="px-4 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-300"><a href="/auth/signup">Sign Up</a></button>
+        </div>
+    </nav>
+
+    <section class="text-center flex flex-col items-center justify-center h-screen relative">
+        <div class="grid-overlay"></div>
+        <h1 class="text-3xl md:text-6xl font-bold gradient-text mt-[-150px] md:mt-[-300px]">
+            Rewire Your Thinking: <br>
+            <span class="text-white">Understanding Mental Health</span>
+        </h1>
+        <p class="text-gray-300 max-w-2xl mt-4 md:mt-8 px-4 md:px-0">
+            Discover the power of CBT to transform your mood and well-being.  Our resources and tools will guide you on a journey to a happier, more fulfilling life.
+        </p>
+        <button class="mt-6 px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-300">
+            <a href="/auth/signup">Explore My Website →</a>
+        </button>
+    </section>
 </div>

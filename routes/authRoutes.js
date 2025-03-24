@@ -5,8 +5,8 @@ router.get("/signup", (req, res) => {
     res.render("signup", { title: "Signup" });
 });
 
-router.get("/login", (req, res) => {
-    res.render("login", { title: "Login" });
+router.get("/signin", (req, res) => {
+    res.render("signin", { title: "Signin" });
 });
 
 module.exports = router;
