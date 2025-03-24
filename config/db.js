@@ -1,9 +1,11 @@
-const { Pool } = require("pg");
+const { neon } = require("@neondatabase/serverless");
 require("dotenv").config();
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false
-});
+const { PGHOST, PGDATABASE, PGUSER, PGPASSWORD } = process.env;
 
-module.exports = pool;
+// Initialize Neon database connection
+const sql = neon(
+    `postgresql://${PGUSER}:${PGPASSWORD}@${PGHOST}/${PGDATABASE}?sslmode=require`
+);
+
+module.exports = { sql };
