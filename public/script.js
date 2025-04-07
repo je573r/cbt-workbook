@@ -24,7 +24,7 @@ oauth.addEventListener('click', async () => {
 });
 
 onAuthStateChanged(auth, (currentUser) => {
-    fetch('localhost:3000/auth/oauth',
+    fetch('/auth/oauth',
         {
             method: "POST",
             credentials: "include",
@@ -44,7 +44,7 @@ const signinbutton = document.getElementById("signinbutton");
 signinbutton.addEventListener('click', () => {
     const usernameinput = document.getElementById("usernameinput");
     const passwordinput = document.getElementById("passwordinput");
-    fetch('localhost:3000/auth/bsignin', {
+    fetch('/auth/bsignin', {
         method: "POST",
         body: {
             username: usernameinput,
@@ -67,7 +67,7 @@ signupbutton.addEventListener('click', () => {
     const upusername = document.getElementById("upusername");
     const upemail = document.getElementById("upemail");
     const uppass = document.getElementById("uppass");
-    fetch('localhost:3000/auth/bsignup', {
+    fetch('/auth/bsignup', {
         method: "POST",
         body: {
             username: upusername,

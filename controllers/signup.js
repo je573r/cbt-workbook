@@ -18,6 +18,7 @@ const AuthRegister = async (req, res) => {
 
     });
 }
+
 const Register = async (req, res) => {
     const userData = req.body;
     const hashedPassword = await bcrypt.hash(userData.password, 10);
