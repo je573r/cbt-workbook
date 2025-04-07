@@ -1,17 +1,16 @@
-const client = require("../config/db");
+const {sql} = require("../config/db");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 const signin = async(req, res)=>{
     const userData = req.body;
-    client.query('SELECT * FROM users WHERE email = $1', [userData.email], async(error, result)=>{
-        if(!error){
-            if(!result.rows[0].password){
-                res.json({
-                    status:'ERR'
-                });
-                return;
-            }
+    try {
+        const result = await sql`SELECT * FROM users WHERE email = ${userData.email}`;
+        
+        if (!result.rows[0]?.password) {
+            res.json({ status: 'ERR' });
+            return;
+        }
             const hashedPassword = result.rows[0].password;
             const matched = await bcrypt.compare(userData.password, hashedPassword);
             if(matched){
@@ -30,10 +29,10 @@ const signin = async(req, res)=>{
                     status:'ERR'
                 })
             }
-        }
-        else{
-            console.log('error');
-        }
-    })
-}
+    }
+    catch (error) {
+        console.log('error', error);
+        res.status(500).json({ status: 'ERR' });
+    }
+};
 module.exports=signin;
