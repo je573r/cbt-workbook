@@ -16,7 +16,7 @@ const morgan = require("morgan");
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
-
+app.use(express.json());
 // Set EJS as the view engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -31,7 +31,7 @@ app.set('layout', 'layout'); // This looks for 'views/layout.ejs'
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+
 
 app.use("/", require("./routes/indexRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
