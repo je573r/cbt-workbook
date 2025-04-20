@@ -1,0 +1,23 @@
+{% layout "layout.liquid" %}
+
+{% block title %}Home | CBT Workbook{% endblock %}
+
+
+{% block main %}
+
+<main class="text-center flex flex-col items-center justify-center h-screen relative">
+  <div class="grid-overlay"></div>
+  <h1 class="text-3xl md:text-6xl font-bold gradient-text mt-[-150px] md:mt-[-300px]">
+    Rewire Your Thinking: <br>
+    <span class="text-white">Understanding Mental Health</span>
+  </h1>
+  <p class="text-gray-300 max-w-2xl mt-4 md:mt-8 px-4 md:px-0">
+    Discover the power of CBT to transform your mood and well-being. Our resources and tools will guide you on a
+    journey to a happier, more fulfilling life.
+  </p>
+  <button class="mt-6 px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-300">
+    <a href="/dashboard">Get Started →</a>
+  </button>
+</main>
+
+{% endblock %}

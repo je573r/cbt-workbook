@@ -1,1 +1,34 @@
 @import "tailwindcss";
+
+.grid-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 70%;
+    transform: translate(-50%, -65%);
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    linear-gradient(to left, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+    linear-gradient(to right, rgba(255, 255, 255, 0.6) 1px, transparent 1px),
+        linear-gradient(to top, rgba(255, 255, 255, 0.6) 1px, transparent 1px);
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: -10;
+    mask-image: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 80%);
+}
+
+@layer components {
+    .htmx-request {
+      @apply opacity-50 pointer-events-none transition-all duration-500 ease-in-out;
+    }
+  
+    .htmx-request .htmx-indicator {
+      @apply inline-block;
+    }
+  
+    .htmx-indicator {
+      @apply hidden;
+    }
+  }
+  
