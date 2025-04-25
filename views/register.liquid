@@ -1,0 +1,84 @@
+{% layout "layout.liquid" %}
+{% block title %}Register | CBT Workbook{% endblock %}
+
+<!-- for different background gradients in some pages -->
+{% block afterbody %}
+    <div class="absolute inset-0 grid grid-cols-1 md:grid-cols-2 -z-20">
+      <div class="bg-linear-to-tl from-black to-purple-700 h-full w-full"></div>
+      <div class="hidden md:block bg-black h-full w-full"></div>
+    </div>
+{% endblock %}
+
+{% block main %}
+<main>
+<div class="min-h-screen grid md:grid-cols-2">
+  <!-- SVG Image for large screens -->
+  <div class="hidden md:flex items-center justify-center">
+    <img src="/public/imgs/human2.svg" alt="Neon blue outline of a human head with a swirling, vortex-like 
+    design in the brain." class="max-w-xl h-auto filter contrast-150 drop-shadow-2xl" />
+  </div>
+  <!-- Registration Form -->
+  <div class="flex items-center justify-center p-6 my-8">
+    <div class="w-full max-w-md bg-gray-900 p-6 rounded-xl shadow-lg"
+      x-data="{ 
+        password: '', 
+        strength: '', 
+        calculateStrength() {
+          let score = 0;
+          if(this.password.length >= 8){ score++; }
+          if(/[A-Z]/.test(this.password)){ score++; }
+          if(/[0-9]/.test(this.password)){ score++; }
+          if(/[^A-Za-z0-9]/.test(this.password)){ score++; }
+          this.strength = score === 0 ? 'Weak' : score === 1 ? 'Weak' : score === 2 ? 'Medium' : 'Strong';
+        } 
+      }" x-effect="calculateStrength()">
+      <h2 class="text-3xl font-bold mb-4">Register</h2>
+      <p class="text-gray-400 mb-6">Let's get you started with CBT Workbook.</p>
+      <form action="/register" method="POST" class="space-y-4">
+        <!-- Username Field -->
+        <div>
+          <label class="block text-sm font-medium">Username</label>
+          <div class="flex items-center bg-gray-800 p-3 rounded-lg mt-1">
+            <span class="text-gray-400">&#128100;</span>
+            <input name="username" type="text" placeholder="Your username" class="bg-transparent flex-1 outline-none ml-2 text-white" required>
+          </div>
+        </div>
+        <!-- Email Field -->
+        <div>
+          <label class="block text-sm font-medium">Email Address</label>
+          <div class="flex items-center bg-gray-800 p-3 rounded-lg mt-1">
+            <span class="text-gray-400">&#9993;</span>
+            <input name="email" type="email" placeholder="Your email" class="bg-transparent flex-1 outline-none ml-2 text-white" required>
+          </div>
+        </div>
+        <!-- Password Field -->
+        <div>
+          <label class="block text-sm font-medium">Password</label>
+          <div class="flex items-center bg-gray-800 p-3 rounded-lg mt-1">
+            <span class="text-gray-400">&#128274;</span>
+            <input name="password" type="password" placeholder="Your password" x-model="password" class="bg-transparent flex-1 outline-none ml-2 text-white" required>
+          </div>
+          <p class="text-xs mt-1" :class="{
+            'text-green-400': strength === 'Strong',
+            'text-yellow-400': strength === 'Medium',
+            'text-red-400': strength === 'Weak'
+          }">Password strength: <span x-text="strength"></span></p>
+        </div>
+        <button type="submit" class="w-full bg-purple-600 py-3 rounded-lg text-white font-semibold hover:bg-purple-500">
+          Register
+        </button>
+      </form>
+      <p class="text-center text-gray-400 mt-4">
+        Already have an account? <a href="/login" class="text-purple-400">Login</a>
+      </p>
+      <button id="oauth" class="w-full flex items-center justify-center bg-gray-700 py-3 rounded-lg mt-4 text-white hover:bg-gray-600 border border-gray-500">
+        <img src="/public/imgs/google-color.svg" class="h-5 w-5 mr-2" alt="Google">
+        Register With Google
+      </button>
+    </div>
+  </div>
+</div>
+</main>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
