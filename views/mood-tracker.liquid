@@ -1,0 +1,402 @@
+{% layout 'layout.liquid' %}
+
+{% block title %}Mood Tracker | CBT Workbook{% endblock %}
+
+{% block main %}
+<main class="min-h-screen text-white p-4">
+  <div class="max-w-6xl mx-auto bg-gray-900 p-3 md:p-6 rounded-lg shadow-lg">
+    <nav class="bg-gray-800 p-4 flex flex-col sm:flex-row justify-between items-center rounded-lg mb-6 gap-4 sm:gap-0">
+      <h1 class="text-xl sm:text-3xl font-bold text-purple-400">Mood Tracker</h1>
+      <div>
+        <a href="/dashboard" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+          Back to Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Calendar Section -->
+      <div class="bg-gray-800 rounded-lg p-6 shadow-lg" x-data="calendarData">
+        <div class="flex justify-between items-center mb-4">
+          <button
+            class="text-gray-400 hover:text-white p-2 transition"
+            @click="prevMonth"
+            aria-label="Previous month"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+          <h2 class="text-lg font-semibold text-white" x-text="currentMonthName + ' ' + currentYear"></h2>
+          <button
+            class="text-gray-400 hover:text-white p-2 transition"
+            @click="nextMonth"
+            aria-label="Next month"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center mb-2">
+          <template x-for="(day, index) in weekdays" :key="index">
+            <div class="text-xs text-gray-400 font-semibold py-1" x-text="day"></div>
+          </template>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center">
+          <!-- Empty cells for days before the first day of the month -->
+          <template x-for="blank in firstDayOfMonth" :key="'blank-' + blank">
+            <div class="aspect-square bg-gray-700/30 rounded-md"></div>
+          </template>
+
+          <!-- Actual days of the month -->
+          <template x-for="day in daysInMonth" :key="day">
+            <div
+              class="aspect-square flex flex-col items-center justify-center rounded-md cursor-pointer transition-all duration-200 group relative"
+              :class="getDayClasses(day)"
+              @click="selectDate(day)"
+            >
+              <span
+                class="text-sm"
+                :class="{'font-bold': isToday(day)}"
+                x-text="day"
+              >
+              </span>
+
+              <!-- Indicator dot for days with mood data -->
+              <div
+                x-show="hasMoodData(day)"
+                class="w-2 h-2 rounded-full bg-purple-500 absolute bottom-1 left-1/2 transform -translate-x-1/2"
+              ></div>
+
+              <!-- Hover tooltip for days with mood data -->
+              <div
+                x-show="hasMoodData(day)"
+                class="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gray-700/80 rounded-md flex flex-col items-center justify-center transition-opacity duration-200"
+              >
+                <div class="text-xs text-gray-300">
+                  Mood:
+                  <span x-text="getMoodRating(day)" class="text-white font-semibold"></span>
+                </div>
+                <div class="text-xs text-gray-300">
+                  Energy:
+                  <span x-text="getEnergyLevel(day)" class="text-white font-semibold"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Empty cells for days after the last day of the month -->
+          <template x-for="blank in (42 - daysInMonth - firstDayOfMonth) % 7" :key="'end-blank-' + blank">
+            <div class="aspect-square bg-gray-700/30 rounded-md"></div>
+          </template>
+        </div>
+
+        <div id="calendar-loader" class="htmx-indicator my-3 flex justify-center">
+          <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-purple-500"></div>
+        </div>
+      </div>
+
+      <!-- Mood Entry Section -->
+      <div class="bg-gray-800 rounded-lg p-6 shadow-lg lg:col-span-2">
+        <h2 class="text-lg font-semibold text-purple-400 mb-4">
+          <span>{{ selectedDate | date: '%A, %B %e, %Y' }}</span>
+        </h2>
+
+        <div id="mood-entry-container">
+          {% if isNewEntry %}
+            <div class="mb-4 text-gray-300">
+              <p>No mood entry for this date yet. Create one below:</p>
+            </div>
+          {% endif %}
+
+          <form
+            id="mood-form"
+            action="{{ formAction }}"
+            method="POST"
+            class="space-y-6 transition-all duration-300"
+          >
+            <!-- Mood rating slider -->
+            <div class="space-y-3" x-data="{ moodRating: {{ moodEntry.mood_rating | default: 5 }} }">
+              <div class="flex justify-between items-center">
+                <label for="mood_rating" class="block text-sm font-medium text-gray-300"> Mood Rating </label>
+                <span class="text-purple-400 text-lg font-semibold" x-text="moodRating"></span>
+              </div>
+              <div class="relative">
+                <input
+                  type="range"
+                  id="mood_rating"
+                  name="mood_rating"
+                  min="1"
+                  max="10"
+                  x-model="moodRating"
+                  class="w-full h-2 bg-gray-700 rounded-lg  cursor-pointer accent-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                <div class="flex justify-between text-xs text-gray-400 px-1 mt-1">
+                  <span>1 - Very Low</span>
+                  <span>10 - Excellent</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Energy level slider -->
+            <div class="space-y-3" x-data="{ energyLevel: {{ moodEntry.energy_level | default: 5 }} }">
+              <div class="flex justify-between items-center">
+                <label for="energy_level" class="block text-sm font-medium text-gray-300"> Energy Level </label>
+                <span class="text-purple-400 text-lg font-semibold" x-text="energyLevel"></span>
+              </div>
+              <div class="relative">
+                <input
+                  type="range"
+                  id="energy_level"
+                  name="energy_level"
+                  min="1"
+                  max="10"
+                  x-model="energyLevel"
+                  class="w-full h-2 bg-gray-700 rounded-lg  cursor-pointer accent-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                <div class="flex justify-between text-xs text-gray-400 px-1 mt-1">
+                  <span>1 - Exhausted</span>
+                  <span>10 - Energetic</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Context -->
+            <div class="space-y-1">
+              <label for="context" class="block text-sm font-medium text-gray-300">
+                Context (What was happening?)
+              </label>
+              <input
+                type="text"
+                id="context"
+                name="context"
+                value="{{ moodEntry.context }}"
+                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                placeholder="e.g., At work, With family, etc."
+              >
+            </div>
+
+            <!-- Situation -->
+            <div class="space-y-1">
+              <label for="situation" class="block text-sm font-medium text-gray-300"> Situation </label>
+              <textarea
+                id="situation"
+                name="situation"
+                rows="2"
+                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white resize-none"
+                placeholder="Describe the situation briefly..."
+              >{{ moodEntry.situation }}</textarea>
+            </div>
+
+            <!-- Physical Symptoms -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-300"> Physical Symptoms </label>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                {% for symptom in symptomOptions %}
+                  <div class="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="symptom_{{ symptom }}"
+                      name="physical_symptoms[]"
+                      value="{{ symptom }}"
+                      {% if moodEntry.physical_symptoms contains symptom %}
+                        checked
+                      {% endif %}
+                      class="rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500 mr-2"
+                    >
+                    <label for="symptom_{{ symptom }}" class="text-gray-300 select-none">{{ symptom }}</label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Thoughts -->
+            <div class="space-y-1">
+              <label for="thoughts" class="block text-sm font-medium text-gray-300"> Thoughts </label>
+              <textarea
+                id="thoughts"
+                name="thoughts"
+                rows="3"
+                class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white resize-none"
+                placeholder="What thoughts were going through your mind?"
+              >{{ moodEntry.thoughts }}</textarea>
+            </div>
+
+            <div class="flex gap-3">
+              <button
+                type="submit"
+                class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex-1"
+              >
+                {% if isNewEntry %}Save{% else %}Update{% endif %}
+                Entry
+              </button>
+
+              {% if isNewEntry == false %}
+                
+
+                <div x-data="{ loading: false }">
+                  <button
+                  class="px-4 py-2 bg-red-500/60 text-white rounded-lg hover:bg-red-600 transition"
+                    :disabled="loading"
+                    @click="
+                      if (confirm('Delete mood entry. Are you sure?')) {
+                        loading = true;
+                        fetc-('{{ formAction }}', { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(data => location.href = data.redirect);
+                      }
+                    "
+                  >
+                    <span x-show="!loading">Delete</span>
+                    <span x-show="loading">Deleting…</span>
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+
+            <div id="form-indicator" class="hidden text-center">
+              <div class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-purple-500"></div>
+              <span class="ml-2">Processing...</span>
+            </div>
+          </form>
+
+          {% if isNewEntry == false %}
+            <form
+              id="delete-form"
+              action="{{ formAction }}"
+              method="POST"
+              style="display: none;"
+            >
+              <input
+                type="hidden"
+                name="_method"
+                value="DELETE"
+              >
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script
+  nonce="{{ nonce }}"
+>
+  document.addEventListener('alpine:init', () => {
+    // Initialize data from the server
+    const initialData = {
+      currentYear: {{ currentYear | raw }},
+      currentMonth: {{ currentMonth | raw }}, // 0-indexed (0 = January)
+      selectedDay: {{ selectedDate | raw | date: "%-d" | default: "new Date().getDate()" }},
+      datesWithData: {{ datesWithMoodData | raw }}
+    };
+    
+    Alpine.data('calendarData', () => ({
+      currentYear: initialData.currentYear,
+      currentMonth: initialData.currentMonth, 
+      selectedDay: initialData.selectedDay,
+      datesWithData: initialData.datesWithData,
+      weekdays: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+      
+      get currentMonthName() {
+        return new Date(this.currentYear, this.currentMonth, 1)
+          .toLocaleString('default', { month: 'long' });
+      },
+      
+      get daysInMonth() {
+        return new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+      },
+      
+      get firstDayOfMonth() {
+        return new Date(this.currentYear, this.currentMonth, 1).getDay();
+      },
+      
+      isToday(day) {
+        const today = new Date();
+        return day === today.getDate() && 
+               this.currentMonth === today.getMonth() && 
+               this.currentYear === today.getFullYear();
+      },
+      
+      isSelectedDate(day) {
+        return day === this.selectedDay &&
+               this.currentMonth === {{ currentMonth }} &&
+               this.currentYear === {{ currentYear }};
+      },
+      
+      hasMoodData(day) {
+        return this.datesWithData[day] && this.datesWithData[day].has_data;
+      },
+      
+      getMoodRating(day) {
+        return this.datesWithData[day] ? this.datesWithData[day].mood_rating : null;
+      },
+      
+      getEnergyLevel(day) {
+        return this.datesWithData[day] ? this.datesWithData[day].energy_level : null;
+      },
+      
+      getDayClasses(day) {
+        if (this.isSelectedDate(day)) {
+          return 'bg-purple-600 hover:bg-purple-700 text-white';
+        } else if (this.hasMoodData(day)) {
+          return 'bg-gray-700 hover:bg-gray-600 text-white';
+        } else if (this.isToday(day)) {
+          return 'bg-gray-700/50 hover:bg-gray-600 text-white border border-purple-500/50';
+        } else {
+          return 'bg-gray-700/50 hover:bg-gray-600 text-gray-300';
+        }
+      },
+      
+      selectDate(day) {
+        const date = new Date(this.currentYear, this.currentMonth, day+1);
+        const formattedDate = date.toISOString().split('T')[0];
+        window.location.href = `/mood-tracker/${formattedDate}`;
+      },
+      
+      async prevMonth() {
+        this.currentMonth--;
+        if (this.currentMonth < 0) {
+          this.currentMonth = 11;
+          this.currentYear--;
+        }
+        await this.fetchMonthData();
+      },
+      
+      async nextMonth() {
+        this.currentMonth++;
+        if (this.currentMonth > 11) {
+          this.currentMonth = 0;
+          this.currentYear++;
+        }
+        await this.fetchMonthData();
+      },
+      
+      async fetchMonthData() {
+        try {
+          // Show loading indicator
+          document.getElementById('calendar-loader').classList.add('htmx-request');
+          
+          // Convert month to 1-indexed for the API
+          const month = this.currentMonth + 1;
+          const response = await fetch(`/api/mood-tracker/calendar/${this.currentYear}/${month}`);
+          const data = await response.json();
+          
+          this.datesWithData = data.dates;
+        } catch (error) {
+          console.error('Failed to fetch calendar data:', error);
+        } finally {
+          // Hide loading indicator
+          document.getElementById('calendar-loader').classList.remove('htmx-request');
+        }
+      }
+    }));
+  });
+</script>
+{% endblock %}
