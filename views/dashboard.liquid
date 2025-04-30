@@ -1,0 +1,75 @@
+{% layout "layout.liquid" %}
+
+{% block title %}Dashboard | CBT Workbook{% endblock %}
+
+{% block main %}
+<main class="min-h-screen text-white p-4">
+  <div class="max-w-6xl md:mx-auto bg-gray-900 p-6 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-purple-400 mb-6">Welcome Back, {{ user.username }}</h1>
+    <div class="flex justify-end mb-4">
+      <button id="refresh-button" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition" 
+        hx-swap="none" 
+        hx-on:click="
+          // Visual feedback for button
+          this.innerHTML = 'Refreshing...';
+          this.classList.add('opacity-75');
+          document.body.dispatchEvent(new Event('refreshWidgets'));
+          setTimeout(() => {
+            this.innerHTML = 'Refresh Widgets';
+            this.classList.remove('opacity-75');
+          }, 2000);
+        ">
+        Refresh Widgets
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- BDI Widget -->
+      <div>
+        <div hx-get="/partials/dashboard/bdi-widget" hx-target="this" hx-indicator="#bdi-spinner" 
+          hx-trigger="load, refreshWidgets from:body delay:200ms"
+          hx-swap="innerHTML">
+        </div>
+        <div id="bdi-spinner" class="htmx-indicator flex justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+        </div>
+      </div>
+
+      <!-- Mood Tracker Widget -->
+      <div>
+        <div hx-get="/partials/dashboard/mood-widget" hx-target="this" hx-indicator="#mood-spinner" 
+          hx-trigger="load, refreshWidgets from:body delay:600ms"
+          hx-swap="innerHTML">
+        </div>
+        <div id="mood-spinner" class="htmx-indicator flex justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+        </div>
+      </div>
+      
+      <!-- Thought Record Widget -->
+      <div>
+        <div hx-get="/partials/dashboard/thought-widget" hx-target="this" hx-indicator="#thought-spinner" 
+          hx-trigger="load, refreshWidgets from:body delay:1000ms"
+          hx-swap="innerHTML">
+        </div>
+        <div id="thought-spinner" class="htmx-indicator flex justify-center py-8">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gratitude Journal Widget (Full Width) -->
+    <div class="mt-6">
+      <div id="gratitude-widget" hx-get="/partials/dashboard/gratitude-widget"
+        hx-trigger="load, refreshWidgets from:body delay:1400ms" hx-swap="innerHTML"
+        hx-indicator="#gratitude-spinner">
+      </div>
+      <div id="gratitude-spinner" class="htmx-indicator flex justify-center py-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-400"></div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
