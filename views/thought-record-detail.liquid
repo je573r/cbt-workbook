@@ -1,0 +1,340 @@
+{% layout 'layout.liquid' %}
+
+{% block title %}Thought Record Details | CBT Workbook{% endblock %}
+
+{% block main %}
+<main class="min-h-screen text-white p-4" x-data="thoughtDetailApp">
+  <div class="max-w-4xl md:mx-auto bg-gray-900 p-2 rounded-lg shadow-lg">
+    <nav class="bg-gray-800 p-4 flex flex-col sm:flex-row justify-between items-center rounded-lg mb-6 gap-4 sm:gap-0">
+      <h1 class="text-xl sm:text-3xl font-bold text-purple-400">Thought Record</h1>
+      <div class="flex space-x-3">
+        <a href="/thought-record/{{ thoughtRecord.created_at | date: '%Y-%m-%d' }}" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+          Back to Date
+        </a>
+        <a href="/dashboard" class="bg-gray-700 px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+          Dashboard
+        </a>
+      </div>
+    </nav>
+
+    <!-- Thought Record Detail Form -->
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg">
+      <h2 class="text-lg font-semibold text-purple-400 mb-6 flex justify-between items-center">
+        <span>Thought Record from {{ thoughtRecord.created_at | date: '%A, %B %e, %Y' }}</span>
+      </h2>
+
+      <form
+        id="thought-form"
+        action="{{ formAction }}"
+        method="POST"
+        class="space-y-5"
+      >
+        <!-- Situation -->
+        <div class="space-y-2">
+          <label for="situation" class="block text-sm font-medium text-gray-300">
+            Situation <span class="text-red-400">*</span>
+          </label>
+          <textarea
+            id="situation"
+            name="situation"
+            rows="2"
+            required
+            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+            placeholder="What happened? What were you doing? Where were you?"
+          >{{ thoughtRecord.situation }}</textarea>
+          <p class="text-xs text-gray-400">The event or situation that triggered your negative thoughts and emotions.</p>
+        </div>
+
+        <!-- Emotions and Intensity -->
+        <div class="space-y-2" x-data="{ 
+          emotions: {{ thoughtRecord.emotions | json | default: '[\'\']' }}, 
+          intensities: {{ thoughtRecord.emotion_intensity | json | default: '[5]' }}
+        }">
+          <label class="block text-sm font-medium text-gray-300">
+            Emotions & Intensity <span class="text-red-400">*</span>
+          </label>
+          <div class="space-y-2">
+            <template x-for="(emotion, index) in emotions" :key="index">
+              <div class="flex space-x-2">
+                <div class="flex-grow">
+                  <input
+                    type="text"
+                    x-model="emotions[index]"
+                    :name="`emotions`"
+                    required
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    placeholder="Emotion (e.g., Anxiety, Sadness)"
+                  >
+                </div>
+                <div class="w-24">
+                  <div class="flex items-center">
+                    <input
+                      type="number"
+                      x-model="intensities[index]"
+                      :name="`emotion_intensity`"
+                      min="1"
+                      max="10"
+                      required
+                      class="w-full px-2 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white text-center"
+                      placeholder="1-10"
+                    >
+                    <span class="ml-2 text-gray-400">/10</span>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  @click="emotions.splice(index, 1); intensities.splice(index, 1)"
+                  class="px-2 py-2 bg-red-500/50 text-white rounded-lg hover:bg-red-500/70"
+                  x-show="emotions.length > 1"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </template>
+
+            <button 
+              type="button" 
+              @click="emotions.push(''); intensities.push(5)"
+              class="px-3 py-1 bg-gray-600 text-white rounded-lg hover:bg-gray-500 text-sm"
+            >
+              + Add Another Emotion
+            </button>
+          </div>
+          <p class="text-xs text-gray-400">Rate the intensity of each emotion from 1 (very low) to 10 (very intense).</p>
+        </div>
+        
+        <!-- Automatic Thoughts -->
+        <div class="space-y-2">
+          <label for="automatic_thoughts" class="block text-sm font-medium text-gray-300">
+            Automatic Thoughts <span class="text-red-400">*</span>
+          </label>
+          <textarea
+            id="automatic_thoughts"
+            name="automatic_thoughts"
+            rows="3"
+            required
+            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+            placeholder="What thoughts automatically went through your mind?"
+          >{{ thoughtRecord.automatic_thoughts }}</textarea>
+          <p class="text-xs text-gray-400">These are the immediate, automatic thoughts that occurred when you were in the situation.</p>
+        </div>
+
+        <!-- Belief in original thought -->
+        <div class="space-y-2" x-data="{ beliefOriginal: {{ thoughtRecord.belief_original | default: 80 }} }">
+          <div class="flex justify-between items-center">
+            <label for="belief_original" class="block text-sm font-medium text-gray-300">
+              Belief in Original Thought (%)
+            </label>
+            <span class="text-purple-400 text-lg font-semibold" x-text="beliefOriginal + '%'"></span>
+          </div>
+          <input
+            type="range"
+            id="belief_original"
+            name="belief_original"
+            min="0"
+            max="100"
+            step="5"
+            x-model="beliefOriginal"
+            class="w-full h-2 bg-gray-700 rounded-lg  cursor-pointer accent-purple-500"
+          >
+          <p class="text-xs text-gray-400">How strongly did you believe these thoughts at the time, from 0% (not at all) to 100% (completely)?</p>
+        </div>
+
+        <!-- Cognitive Distortions -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-300">Cognitive Distortions</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            {% for distortion in cognitiveDistortions %}
+              <div class="flex items-start">
+                <input
+                  type="checkbox"
+                  id="distortion_{{ distortion.name | slugify }}"
+                  name="cognitive_distortions[]"
+                  value="{{ distortion.name }}"
+                  class="mt-1 mr-2 rounded bg-gray-700 border-gray-600 text-purple-500 focus:ring-purple-500"
+                  {% if thoughtRecord.cognitive_distortions contains distortion.name %}checked{% endif %}
+                >
+                <div>
+                  <label for="distortion_{{ distortion.name | slugify }}" class="text-gray-300 select-none">{{ distortion.name }}</label>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ distortion.description }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <p class="text-xs text-gray-400">Select the thinking patterns that apply to your automatic thoughts.</p>
+        </div>
+
+        <!-- Rational Response -->
+        <div class="space-y-2">
+          <label for="rational_response" class="block text-sm font-medium text-gray-300">Rational Response</label>
+          <textarea
+            id="rational_response"
+            name="rational_response"
+            rows="4"
+            class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+            placeholder="What's a more balanced way of thinking about this situation?"
+          >{{ thoughtRecord.rational_response }}</textarea>
+          <p class="text-xs text-gray-400">A more balanced, evidence-based alternative to your automatic thoughts.</p>
+        </div>
+
+        <!-- Outcome emotions -->
+        <div class="space-y-2" x-data="{ 
+          outcomeEmotions: {{ thoughtRecord.outcome_emotions | json | default: '[\'\']' }}, 
+          outcomeIntensities: {{ thoughtRecord.outcome_intensity | json | default: '[3]' }}
+        }">
+          <label class="block text-sm font-medium text-gray-300">Outcome Emotions & Intensity (After Reframing)</label>
+          <div class="space-y-2">
+            <template x-for="(emotion, index) in outcomeEmotions" :key="'outcome-'+index">
+              <div class="flex space-x-2">
+                <div class="flex-grow">
+                  <input
+                    type="text"
+                    x-model="outcomeEmotions[index]"
+                    :name="`outcome_emotions`"
+                    class="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    placeholder="Emotion after reframing"
+                  >
+                </div>
+                <div class="w-24">
+                  <div class="flex items-center">
+                    <input
+                      type="number"
+                      x-model="outcomeIntensities[index]"
+                      :name="`outcome_intensity`"
+                      min="1"
+                      max="10"
+                      class="w-full px-2 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white text-center"
+                      placeholder="1-10"
+                    >
+                    <span class="ml-2 text-gray-400">/10</span>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  @click="outcomeEmotions.splice(index, 1); outcomeIntensities.splice(index, 1)"
+                  class="px-2 py-2 bg-red-500/50 text-white rounded-lg hover:bg-red-500/70"
+                  x-show="outcomeEmotions.length > 1"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </template>
+
+            <button 
+              type="button" 
+              @click="outcomeEmotions.push(''); outcomeIntensities.push(3)"
+              class="px-3 py-1 bg-gray-600 text-white rounded-lg hover:bg-gray-500 text-sm"
+            >
+              + Add Another Emotion
+            </button>
+          </div>
+          <p class="text-xs text-gray-400">How do you feel after developing your rational response? Rate from 1-10.</p>
+        </div>
+
+        <!-- Belief after rational response -->
+        <div class="space-y-2" x-data="{ beliefAfter: {{ thoughtRecord.belief_after | default: 40 }} }">
+          <div class="flex justify-between items-center">
+            <label for="belief_after" class="block text-sm font-medium text-gray-300">
+              Belief in Original Thought After Reframing (%)
+            </label>
+            <span class="text-purple-400 text-lg font-semibold" x-text="beliefAfter + '%'"></span>
+          </div>
+          <input
+            type="range"
+            id="belief_after"
+            name="belief_after"
+            min="0"
+            max="100"
+            step="5"
+            x-model="beliefAfter"
+            class="w-full h-2 bg-gray-700 rounded-lg  cursor-pointer accent-purple-500"
+          >
+          <p class="text-xs text-gray-400">How strongly do you believe the original negative thoughts now?</p>
+        </div>
+
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex-1"
+          >
+            Update Thought Record
+          </button>
+          <button
+            type="button"
+            @click="openDeleteModal"
+            class="px-4 py-2 bg-red-500/70 text-white rounded-lg hover:bg-red-500 transition"
+          >
+            Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+<!-- Delete confirmation modal -->
+<div class="fixed inset-0 bg-black/50 items-center justify-center hidden" 
+     x-ref="deleteModal" 
+     x-show="showDeleteModal" 
+     x-cloak
+     :class="{'flex': showDeleteModal, 'hidden': !showDeleteModal}">
+  <div class="bg-gray-800 p-6 rounded-lg max-w-md mx-auto mt-32">
+    <h3 class="text-lg font-semibold text-white mb-4">Confirm Delete</h3>
+    <p class="text-gray-300 mb-6">Are you sure you want to delete this thought record? This action cannot be undone.</p>
+    <div class="flex space-x-3">
+      <button 
+        @click="confirmDelete"
+        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition flex-1"
+      >Delete</button>
+      <button 
+        @click="cancelDelete"
+        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition flex-1"
+      >Cancel</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script nonce="{{ nonce }}">
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('thoughtDetailApp', () => ({
+      showDeleteModal: false,
+      recordId: '{{ thoughtRecord.record_id }}',
+      
+      openDeleteModal() {
+        this.showDeleteModal = true;
+      },
+      
+      cancelDelete() {
+        this.showDeleteModal = false;
+      },
+      
+      async confirmDelete() {
+        try {
+          const response = await fetch(`/thought-record/${this.recordId}`, {
+            method: 'DELETE',
+          });
+          
+          const result = await response.json();
+          
+          if (result.redirect) {
+            window.location.href = result.redirect;
+          } else {
+            console.error('No redirect URL provided');
+            window.location.href = '/thought-record';
+          }
+        } catch (error) {
+          console.error('Error deleting record:', error);
+          alert('Failed to delete the thought record');
+          this.showDeleteModal = false;
+        }
+      }
+    }));
+  });
+</script>
+{% endblock %}
