@@ -75,5 +75,70 @@ router.get("/bdi/history", isAuthenticated, async (req, res) => {
     }
 });
 
+// Show detailed results for a specific BDI test
+router.get("/bdi/results/:id", isAuthenticated, async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Get the response data and ensure it belongs to the current user
+        const result = await pool.query(
+            `SELECT response_id, selected_options, total_score, interpretation, created_at 
+             FROM quiz.bdi_responses 
+             WHERE response_id = $1 AND user_id = $2`,
+            [id, req.session.userId]
+        );
+
+        if (result.rows.length === 0) {
+            req.flash('error', 'BDI result not found or you do not have permission to view it.');
+            return res.redirect('/bdi/history');
+        }
+
+        const response = result.rows[0];
+
+        // Prepare the results data with the question text and selected answers
+        const detailedResults = bdiQuizData.questions.map((question, index) => {
+            const selectedValue = response.selected_options[index];
+            const selectedOption = question.options.find(opt => opt.value === selectedValue);
+
+            return {
+                question: question.text,
+                selectedValue: selectedValue,
+                selectedText: selectedOption ? selectedOption.text : 'No answer',
+            };
+        });
+
+        res.render("bdi-results", {
+            title: "BDI Test Results | CBT Workbook",
+            response: response,
+            detailedResults: detailedResults,
+            bdiData: bdiQuizData
+        });
+    } catch (error) {
+        console.error('Error fetching BDI results:', error);
+        req.flash('error', 'Failed to load the BDI test result details.');
+        res.redirect('/bdi/history');
+    }
+});
+
+// HTMX partial for BDI widget on dashboard
+router.get("/partials/dashboard/bdi-widget", isAuthenticated, async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT response_id, total_score, interpretation, created_at
+             FROM quiz.bdi_responses
+             WHERE user_id = $1
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            [req.session.userId]
+        );
+        const latestBdi = result.rows[0] || null;
+        res.render("partials/dashboard/bdi-widget", { latestBdi: latestBdi });
+        return;
+    } catch (error) {
+        console.error('Error fetching latest BDI for dashboard widget:', error);
+        res.status(500).send('');
+        return;
+    }
+});
 
 module.exports = router;
