@@ -1,0 +1,23 @@
+<div id="bdi-widget" class="bg-gray-800 rounded-lg p-6 shadow-lg h-full flex flex-col">
+  <!-- {% currentUnixEpoch %} -->
+  <h2 class="text-xl font-semibold text-purple-400 mb-4">Beck Depression Inventory (BDI)</h2>
+  {% if latestBdi %}
+    <div class="bg-gray-700 p-4 rounded-lg text-center mb-4">
+        <div class="text-sm text-gray-400">Latest Score</div>
+        <div class="mt-1 text-3xl font-bold text-purple-400">{{ latestBdi.total_score }}</div>
+        <div class="text-sm text-gray-400 mt-1">({{ latestBdi.interpretation }})</div>
+    </div>
+    <div class="text-xs text-gray-400 mb-1">Taken on {{ latestBdi.created_at | date: '%B %d, %Y' }}</div>
+    <a href="/bdi/results/{{ latestBdi.response_id }}" class="text-sm text-purple-400 hover:text-purple-300 mb-2 block">View Details</a>
+  {% else %}
+    <p class="text-gray-300 mb-4">You haven't taken the BDI assessment yet. Take it now to understand your mood better.</p>
+  {% endif %}
+  
+  <a href="/bdi/history" class="text-sm text-purple-400 hover:text-purple-300 mb-4 block">View History</a>
+
+  <div class="mt-auto pt-4">
+    <a href="/bdi" class="block w-full bg-purple-600 text-center rounded-lg py-2 hover:bg-purple-700 transition">
+      {% if latestBdi %}Take Again{% else %}Take Assessment{% endif %}
+    </a>
+  </div>
+</div>
