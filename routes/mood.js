@@ -63,7 +63,7 @@ async function getMoodEntryByDate(userId, dateStr) {
 router.get("/mood-tracker", isAuthenticated, (req, res) => {
     const today = new Date();
     const formattedDate = today.toISOString().split("T")[0]; // Format as YYYY-MM-DD
-    res.redirect(/mood-tracker/`${formattedDate}`);
+    res.redirect(`/mood-tracker/${formattedDate}`);
     return;
 });
 
@@ -99,7 +99,7 @@ router.get("/mood-tracker/:date", isAuthenticated, async (req, res) => {
             datesWithMoodData: JSON.stringify(datesWithMoodData),
             isNewEntry: !moodEntry,
             symptomOptions: symptomOptions,
-            formAction: /mood-tracker/`${dateStr}`
+            formAction: `/mood-tracker/${dateStr}`
         });
         return;
     } catch (error) {
@@ -126,7 +126,7 @@ router.post("/mood-tracker/:date", isAuthenticated, async (req, res) => {
         // Validate required fields
         if (!mood_rating || !energy_level) {
             req.flash("error", "Mood rating and energy level are required.");
-            return res.redirect(/mood-tracker/`${dateStr}`);
+            return res.redirect(`/mood-tracker/${dateStr}`);
         }
 
         // Create new entry
@@ -148,11 +148,11 @@ router.post("/mood-tracker/:date", isAuthenticated, async (req, res) => {
         );
 
         req.flash("success", "Mood entry saved successfully.");
-        return res.redirect(/mood-tracker/`${dateStr}`);
+        return res.redirect(`/mood-tracker/${dateStr}`);
     } catch (error) {
         console.error("Error creating mood entry:", error);
         req.flash("error", "Failed to save mood data. Please try again.");
-        return res.redirect(/mood-tracker/`${dateStr}`);
+        return res.redirect(`/mood-tracker/${dateStr}`);
     }
 });
 
@@ -168,12 +168,12 @@ router.delete("/mood-tracker/:date", isAuthenticated, async (req, res) => {
         );
 
         req.flash("success", "Mood entry deleted successfully.");
-        res.json({ redirect: /mood-tracker/`${dateStr}` });
+        res.json({ redirect: `/mood-tracker/${dateStr}` });
         return;
     } catch (error) {
         console.error("Error deleting mood entry:", error);
         req.flash("error", "Failed to delete mood data. Please try again.");
-        res.status(500).json({ redirect: /mood-tracker/`${dateStr}` });
+        res.status(500).json({ redirect: `/mood-tracker/${dateStr}` });
         return;
     }
 });
